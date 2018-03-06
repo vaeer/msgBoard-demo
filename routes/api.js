@@ -62,7 +62,7 @@ router.post('/userLogin', function (req, res) {
     db.user_login([`${username}`, `${password}`]).then(results => {
         //console.log(results);
         if (results.length > 0) {
-            res.cookie('name', username/*, { expires: new Date(Date.now() + 600000) }*/);
+            res.cookie('name', username, { expires: new Date(Date.now() + 600000) });
             res.json({
                 'msg': '登录成功',
                 'code': '200'
