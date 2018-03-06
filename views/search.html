@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>查看留言</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"></link>
+    <link rel="stylesheet" type="text/css" href="/css/globe.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .row {
+            margin: 10px 0;
+        }
+
+        #main {
+            color: #333;
+        }
+
+        footer {
+            position: static;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="fa fa-comment"></i>
+                    留言板
+                </a>
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a href="/">发表留言</a>
+                    </li>
+                    <li>
+                        <a href="/message">查看留言</a>
+                    </li>
+
+                    <form class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="留言内容" id="searchText">
+                        </div>
+                        <a href="/search" class="btn btn-default" id="search">搜索</a>
+                    </form>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="active">
+                        <a href="/info">个人资料</a>
+                    </li>
+                    <li>
+                        <a href="/update">修改密码</a>
+                    </li>
+                    <li class="active">
+                        <a href="/api/exit">注销</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </nav>
+    </div>
+    <div id="main">
+        <div class="container">
+            <div class="col-xs-6 col-md-offset-3">
+                <div id="message"></div>
+                <div id="nav"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/search.js"></script>
+    <script>
+
+        $.ajax({
+            type: "get",
+            url: "/api/searchNum",
+            data: location.search.slice(1),
+            dataType: "json",
+            success: function (data) {
+                var num = data.num;//查询结果个数
+                var search = location.search.split("&")[0];
+                console.log(search);
+                if (num === 0) {//没有搜索结果
+                    $("#message").html(`<h1 class="text-center" style="color: #fff;">无该搜索结果</h1>`);
+                }
+                else {//有结果
+                    var pages = Math.ceil(num / 8);//每页最多八条留言
+                    //console.log("有结果");
+                    if (pages === 1) {
+                        //console.log("只有1页");
+                        $.get('/api/searchMessage',`${location.search.slice(1)}&page=1`, function(data) {
+                            //console.log(data);
+                            var results = data.results;
+                            let html = "";
+                            for (let i = 0; i < results.length; i++) {
+                                html += `<div class="row">
+                                     <div class="panel panel-default">
+                                     <div class="panel-heading text-center" id="title-${i + 1}">${results[i].title}</div>
+                                     <div class="panel-body">
+                                         <p id="content-${i + 1}">${results[i].content}</p>
+                                     </div>
+                                     <div class="panel-footer">
+                                         <span class="pull-left" id="name-${i + 1}">留言人:  ${results[i].username}</span>
+                                         <span class="pull-right" id="date-${i + 1}">留言时间:  ${results[i].date}</span>
+                                         <div style="clear:both;"></div>
+                                     </div>
+                                     </div>
+                                 </div>`;
+                            }
+                            $("#message").html(html);
+                        })
+                    }
+                    else {//当有分页时
+                        console.log("有好多页");
+                        var li = "";
+                        console.log(pages);
+                        for (let i = 1; i < pages + 1; i++) {
+                            li += `<li><a href="/search${search}&page=${i}" id="btn-${i}">${i}</a></li>`;
+                            $(`btn-${i}`).click(function () {
+                                console.log("成功");
+                                $.get("api/searchMessage", location.search.slice(1), function (data) {
+                                    var results = data.results;
+                                    var username = data.username;
+                                    console.log(results);
+                                })
+                            })
+                        }
+                        $("#nav").html(`
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination">
+                                            <li>
+                                                <a href="/search${search}&page=1" id="btn-1" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            ${li}
+                                            <li>
+                                            <a href="/search${search}&page=${pages}" id="btn-${pages}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                            </li>
+                                        </ul>
+                                    </nav>`);
+
+                        $.ajax({
+                            type: "get",
+                            url: "/api/searchMessage",
+                            data: location.search.slice(1),
+                            success: function (data) {
+                                var results = data.results;
+                                let html = "";
+                                console.log(results);
+                                for (let i = 0; i < results.length; i++) {
+                                    html += `<div class="row">
+                                    <div class="panel panel-default">
+                                    <div class="panel-heading text-center" id="title-${i + 1}">${results[i].title}</div>
+                                    <div class="panel-body">
+                                        <p id="content-${i + 1}">${results[i].content}</p>
+                                    </div>
+                                    <div class="panel-footer">
+                                        <span class="pull-left" id="name-${i + 1}">留言人:  ${results[i].username}</span>
+                                        <span class="pull-right" id="date-${i + 1}">留言时间:  ${results[i].date}</span>
+                                        <div style="clear:both;"></div>
+                                    </div>
+                                    </div>
+                                </div>`;
+                                }
+                                $("#message").html(html);
+                            }
+                        })
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

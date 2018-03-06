@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css"></link>
+    <link rel="stylesheet" type="text/css" href="/css/globe.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <div id="header">
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="fa fa-comment"></i>
+                    留言板
+                </a>
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a href="/">发表留言</a>
+                    </li>
+                    <li>
+                        <a href="/message">查看留言</a>
+                    </li>
+
+                    <form class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="留言内容" id="searchText">
+                        </div>
+                        <a href="/search" class="btn btn-default" id="search">搜索</a>
+                    </form>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="active">
+                        <a href="#" id="info">个人资料</a>
+                    </li>
+                    <li>
+                        <a href="/update">修改密码</a>
+                    </li>
+                    <li class="active">
+                        <a href="/api/exit">注销</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </nav>
+    </div>
+    <div id="main">
+        <div id="message" class="container-fluid">
+            <div class="col-xs-6 col-xs-offset-3">
+                <h1 class="word text-center">留言板</h1>
+                <br />
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label for="title" class="control-label">标题:</label>
+                        <div>
+                            <input type="text" class="form-control" name="title" id="title" placeholder=" 标题 (必填)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="content" class="control-label">内容:</label>
+                        <div>
+                            <textarea class="form-control" rows="10" name="content" id="content" placeholder="留言内容 (200字以内)"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="text-center">
+                            <button id="submit" class="btn btn-default">发表留言</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>by Vaeer</footer>
+
+
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/search.js"></script>
+    <script>
+        $(function () {
+            $("#submit").click(function () {
+                var title = $("#title").val();
+                var content = $("#content").val();
+                if (title == "" || content == "") {
+                    alert("标题和内容不能为空");
+                    return;
+                }
+                $.ajax({
+                    type: "post",
+                    url: "/api/addMessage",
+                    data: {
+                        title: title,
+                        content: content,
+                    },
+                    dataType: "json",
+                    success: function (data) {
+                        var msg = data.msg;
+                        alert(msg);
+                        $("#title").val("");
+                        $("#content").val("");
+                    }
+                })
+            })
+
+            $("#info").click(function () {
+                $.ajax({
+                    type: "post",
+                    url: "/api/getInfo",
+                    dataType: "json",
+                    success: function (data) {
+                        var code = data.code;
+                        if (code == '200') {
+                            $("#info").attr("href", "/info");
+                            location.href = "/info";
+                        }
+                        else {
+                            $("#info").attr("href", "/info/add");
+                            location.href = "/info/add";
+                        }
+                    }
+                })
+            })
+        })
+    </script>
+</body>
+
+</html>

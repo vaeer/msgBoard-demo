@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>注册</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"></link>
+    <style>
+        body {
+            background-color: #333;
+        }
+
+        #top {
+            display: grid;
+            height: 200px;
+            align-content: center;
+            justify-content: center;
+        }
+
+        #word {
+            color: #fff;
+            font-size: 2.4rem;
+        }
+
+        .failory {
+            position: relative;
+            width: 4rem;
+            height: 2.4rem;
+            background: white;
+            -webkit-perspective: 1000px;
+            perspective: 1000px;
+            -webkit-perspective-origin: 0 800%;
+            perspective-origin: 0 800%;
+            border-radius: 1px;
+        }
+
+        .failory:after {
+            content: '';
+            width: 0;
+            height: 0;
+            border: .4rem solid white;
+            position: absolute;
+            bottom: -.8rem;
+            right: .75rem;
+            border-left-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        .failory .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0.05rem;
+            border-radius: inherit;
+            background: #f54849;
+            -webkit-transform-origin: bottom left;
+            transform-origin: bottom left;
+            -webkit-transform: rotateY(-65deg);
+            transform: rotateY(-65deg);
+            -webkit-transition: ease-in-out .2s;
+            transition: ease-in-out .2s;
+        }
+
+        .failory .page--1 {
+            background: #f41118;
+            -webkit-transform: rotateY(-40deg);
+            transform: rotateY(-40deg);
+        }
+
+        .failory:hover .page {
+            -webkit-transform: rotateY(-85deg);
+            transform: rotateY(-85deg);
+        }
+
+        .failory:hover .page--1 {
+            -webkit-transform: rotateY(-50deg);
+            transform: rotateY(-50deg);
+        }
+
+        footer {
+            color: #fff;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-11">
+                <div id="top">
+                    <div class="failory">
+                        <div class="page page--1"></div>
+                        <div class="page page--2"></div>
+                    </div>
+                    <div id="word" style="font-size: 45px;">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;留言板
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" id="login">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center" id="header">用户注册</div>
+                    <div class="panel-body">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label for="username" class="col-sm-2 control-label">用户名:</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name='username' class="form-control" id="username" placeholder="6-16位，包含字母数字下划线">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="col-sm-2 control-label">密码:</label>
+                                <div class="col-sm-10">
+                                    <input type="password" name='password' class="form-control" id="password" placeholder="6位及以上">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="text-center">
+                                    <div class="col-xs-2"></div>
+                                    <div class="col-xs-3">
+                                        <button class="btn btn-default" id="regBtn">注册</button>
+                                    </div>
+                                    <div class="col-xs-7">
+                                        <a href="/login" class="btn btn-default">返回</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    <footer>
+        by Vaeer
+    </footer>
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script>
+        $(function () {
+            $("#password, #username").keypress(function (event) {
+                if (event.keyCode == "13") {
+                    $("#regBtn").trigger("click");
+                }
+            });
+
+            $('#regBtn').click(function () {
+                var username = $("#username").val();
+                var password = $("#password").val();
+
+                if (!username.match(/^[a-zA-Z0-9_-]{4,16}$/g)) {
+                    alert('账号格式不正确');
+                    return;
+                }
+                else if (password.lenth < 6) {
+                    alert('密码格式不正确');
+                    return;
+                }
+                else {
+                    $.ajax({
+                        type: 'post',
+                        url: '/api/adduser',
+                        data: {
+                            username: username,
+                            password: password,
+                        },
+                        dataType: 'json',
+                        success: function (data) {
+                            var code = data.code;
+                            var msg = data.msg;
+                            //console.log("注册成功");
+                            //console.log(data);
+                            if (code == 200 || code == 100) {
+                                alert(msg);
+                                location.href = '/login';
+                            }
+                            else {
+                                alert(msg);
+                            }
+                        }
+                    });
+                }
+            });
+        })
+    </script>
+</body>
+
+</html>

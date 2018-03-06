@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>查看留言</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"></link>
+    <link rel="stylesheet" type="text/css" href="/css/globe.css">
+    <style>
+        .row {
+            margin: 10px 0;
+        }
+
+        #main {
+            color: #333;
+        }
+
+        footer {
+            position: static;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <a class="navbar-brand" href="/admin">
+                    <i class="fa fa-comment"></i>
+                    留言板
+                </a>
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a href="/admin">发表留言</a>
+                    </li>
+                    <li>
+                        <a href="/adminMessage">查看留言</a>
+                    </li>
+
+                    <form class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="留言内容" id="searchText">
+                        </div>
+                        <a href="/adminSearch" class="btn btn-default" id="search">搜索</a>
+                    </form>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#">管理员模式</a>
+                    </li>
+                    <li class="active">
+                        <a href="/api/exit">注销</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </nav>
+    </div>
+    <div id="main">
+        <div class="container">
+            <div class="col-xs-6 col-md-offset-3">
+                <div class="row" style="display: none;" id="replybox">
+                    <div class="panel panel-default">
+                        <div class="panel-heading text-center">回复</div>
+                        <div class="panel-body">
+                            <div class="text-center form-group">
+                                <input type="text" class="form-control" id="reply" placeholder="回复内容">
+                            </div>
+                            <div class="text-center form-group">
+                                <button id="submit" class="btn btn-default">提交</button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>;
+                <div id="message"></div>
+                <div id="nav"></div>
+
+            </div>
+        </div>
+    </div>
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/adminSearch.js"></script>
+    <script>
+        $.ajax({//取得留言总数num
+            type: "get",
+            url: "api/showNum",
+            dataType: "json",
+            success: function (data) {
+                //console.log(data);
+                var num = data.num;//留言条数
+                if (num === 0) {//无留言
+                    $("#message").html(`<h1 class="text-center" style="color: #fff;">暂无留言，快去<a href="/admin">留言吧<a></h1>`);
+                }
+                else {//有留言
+                    var pages = Math.ceil(num / 8);//每页最多八条留言
+                    //console.log(location.search.slice(1));
+                    if (pages > 1) {//有多页，需要分页
+                        var li = "";
+                        for (let i = 1; i < pages + 1; i++) {
+                            li += `<li><a href="/adminMessage?page=${i}" id="btn-${i}">${i}</a></li>`;
+                            $(`btn-${i}`).click(function () {
+                                $.get(`api/showMessage`, { page: i }, function (data) {
+                                    var results = data.results;
+                                    var username = data.username;
+                                    console.log(results);
+                                })
+                            })
+                        }
+                        $("#nav").html(`
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination">
+                                            <li>
+                                                <a href="/adminMessage?page=1" id="btn-1" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            ${li}
+                                            <li>
+                                            <a href="/adminMessage?page=${pages}" id="btn-${pages}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                            </li>
+                                        </ul>
+                                    </nav>`);
+                        $.ajax({
+                            type: "get",
+                            url: "/api/showMessage",
+                            data: location.search.slice(1),
+                            success: function (data) {
+                                var results = data.results;
+                                let html = "";
+                                console.log(results);
+                                for (let i = 0; i < results.length; i++) {
+                                    html += `<div class="row">
+                                    <div class="panel panel-default">
+                                    <div class="panel-heading text-center" id="title-${i + 1}">${results[i].title}</div>
+                                    <div class="panel-body">
+                                        <p id="content-${i + 1}">${results[i].content}</p>
+                                        <hr>
+                                        <p id="reply-${i + 1}">管理员留言：${results[i].reply}</p>
+                                    </div>
+                                    <div class="panel-footer">
+                                        <span class="pull-left" id="name-${i + 1}">留言人:  ${results[i].username}</span>
+                                        <span class="pull-right" id="date-${i + 1}">留言时间:  ${results[i].date}</span>
+                                        <div style="clear:both;"></div>
+                                        <div class="text-center">
+                                            <a href="#replybox" class="btn btn-default reply">回复</a>
+                                            <span>&nbsp;&nbsp;</span>
+										    <button class="btn btn-default delete">删除</button>
+										</div>
+                                    </div>
+                                    </div>
+                                </div>`;
+                                }
+                                $("#message").html(html);
+                            }
+                        })
+                    }
+                    else {//只有一页
+                        $.get('/api/showMessage', { page: 1 }, function (data) {
+                            var results = data.results;
+                            //console.log(results);
+                            let html = "";
+                            for (let i = 0; i < results.length; i++) {
+                                html += `<div class="row">
+                                     <div class="panel panel-default">
+                                     <div class="panel-heading text-center" id="title-${i + 1}">${results[i].title}</div>
+                                     <div class="panel-body">
+                                         <p id="content-${i + 1}">${results[i].content}</p>
+                                         <hr>
+                                         <p id="reply-${i + 1}">管理员留言：${results[i].reply}</p>
+                                     </div>
+                                     <div class="panel-footer">
+                                         <span class="pull-left" id="name-${i + 1}">留言人:  ${results[i].username}</span>
+                                         <span class="pull-right" id="date-${i + 1}">留言时间:  ${results[i].date}</span>
+                                         <div style="clear:both;"></div>
+                                         <div class="text-center">
+                                            <a href="#replybox" class="btn btn-default reply">回复</a>
+                                            <span>&nbsp;&nbsp;</span>
+										    <button class="btn btn-default delete">删除</button>
+										</div>
+                                     </div>
+                                     </div>
+                                 </div>`;
+                            }
+                            $("#message").html(html);
+                        })
+
+                    }
+                }
+            }
+        })
+        //回复消息
+        $(document).on('click', '.reply', function () {
+            $("#replybox").css("display", "block");
+            var date = $(this).parent().prev().prev().text().slice(7);
+            window.localStorage.setItem("date", date);
+        })
+        $("#submit").click(function () {
+            var date = window.localStorage.getItem("date");
+            console.log(date);
+            var reply = $("#reply").val();
+            console.log(date);
+            $.ajax({
+                type: "post",
+                url: "/api/adminReply",
+                data: {
+                    reply: reply,
+                    date: date
+                },
+                dataType: "json",
+                success: function (data) {
+                    var msg = data.msg;
+                    alert(msg);
+                    $("#replybox").css("display", "none");
+                    window.localStorage.clear();
+                }
+            })
+        })
+        //删除消息
+        $(document).on('click', '.delete', function () {
+            var date = $(this).parent().prev().prev().text().slice(7);
+            $.ajax({
+                type: "post",
+                url: "/api/adminDelete",
+                data: {
+                    date: date
+                },
+                dataType: "json",
+                success: function (data) {
+                    var msg = data.msg;
+                    alert(msg);
+                    location.href = '/adminMessage';
+                }
+            })
+        })
+
+
+    </script>
+</body>
+
+</html>

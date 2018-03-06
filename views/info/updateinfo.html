@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>修改个人信息</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"></link>
+    <link rel="stylesheet" type="text/css" href="/css/globe.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <div id="header">
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="fa fa-comment"></i>
+                    留言板
+                </a>
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a href="/">发表留言</a>
+                    </li>
+                    <li>
+                        <a href="/message">查看留言</a>
+                    </li>
+
+                    <form class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="留言内容" id="searchText">
+                        </div>
+                        <a href="/search" class="btn btn-default" id="search">搜索</a>
+                    </form>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="active">
+                        <a href="/info">个人资料</a>
+                    </li>
+                    <li>
+                        <a href="/update">修改密码</a>
+                    </li>
+                    <li class="active">
+                        <a href="/api/exit">注销</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </nav>
+    </div>
+    <div id="main">
+        <div>
+            <div id="message" class="container-fluid">
+                <div class="col-xs-6 col-xs-offset-3">
+                    <h1 class="word text-center">个人信息</h1>
+                    <br />
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="col-xs-1">
+                                <i class="fa fa-user fa-3x"></i>
+                            </div>
+                            <div class="col-xs-11">
+                                <input type="text" class="form-control" id="name" placeholder="名字">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-1">
+                                <i class="fa fa-envelope fa-3x"></i>
+                            </div>
+
+                            <div class="col-xs-11">
+                                <input type="text" class="form-control" id="email" placeholder="邮箱">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-1">
+                                <i class="fa fa-phone fa-3x"></i>
+                            </div>
+
+                            <div class="col-xs-11">
+                                <input type="text" class="form-control" id="phone" placeholder="联系方式">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-1">
+                                <i class="fa fa-comments fa-3x"></i>
+                            </div>
+
+                            <div class="col-xs-11">
+                                <textarea class="form-control" id="info" placeholder="个人简介" cols="30" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="text-center">
+                                <button id="submit" class="btn btn-default">提交</button>
+                                <span>&nbsp;</span>
+                                <a href="/info" class="btn btn-default">返回</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/search.js"></script>
+    <script>
+        $(function () {
+            $("#name, #email, #phone, #info").keypress(function (event) {
+                if (event.keyCode == "13") {
+                    $("#submit").trigger("click");
+                }
+            });
+
+            $("#submit").click(function () {
+                var name = $("#name").val();
+                var email = $("#email").val();
+                var phone = $("#phone").val();
+                var info = $("#info").val();
+
+                if (name == '' || email == '' || phone == '') {
+                    alert('前三项不能为空');
+                    return;
+                }
+                else if (!email.match(/^([0-9A-Za-z\-_\.]+)@([0-9a-z]+\.[a-z]{2,3}(\.[a-z]{2})?)$/g)) {
+                    alert('您输入的邮箱有误');
+                    return;
+                }
+                else if (!phone.match(/^1\d{10}$/g)) {
+                    alert('您输入的联系方式有误');
+                    return;
+                }
+                else {
+                    $.ajax({
+                        type: 'post',
+                        url: '/api/updateInfo',
+                        data: {
+                            name: name,
+                            email: email,
+                            phone: phone,
+                            info: info
+                        },
+                        dataType: 'json',
+                        success: function (data) {
+                            var msg = data.msg;
+                            alert(msg);
+                            location.href = '/info';
+                        }
+                    })
+                }
+            })
+        })
+    </script>
+</body>
+
+</html>
